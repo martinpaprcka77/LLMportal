@@ -211,8 +211,9 @@ footer a{color:var(--accent);text-decoration:none;}
     <!-- KROK 0 -->
     <section>
       <div class="sec-label">Krok 0 — ověření</div>
-      <h2 class="sec-h">Stojí tohle za tvůj čas?</h2>
-      <p class="sec-sub">Nedělám tady kurz. Nezkoušíme tě. Martin a já jsme si všimli jedné věci a chceme vědět jestli ji vidíš taky.<br>Zabere to 2 minuty. Pak se rozhodni sám.</p>
+      <h2 class="sec-h" style="color:var(--yellow);">Honzíku, za 2 minuty uděláš AI lhát.</h2>
+      <p class="sec-sub">Pak ji zastavíš jedním řádkem. Martin ti to ukáže — ale musíš to vidět sám, ne přečíst. Jdi rovnou dolů na demo.</p>
+      <a class="btn-primary" href="#h-try" style="display:inline-block;margin-top:4px;">▶ Přeskočit rovnou na experiment</a>
     </section>
 
     <hr class="div">
@@ -222,6 +223,14 @@ footer a{color:var(--accent);text-decoration:none;}
       <div class="sec-label">Wow demo</div>
       <h2 class="sec-h">Stejná otázka. Dva výsledky.</h2>
       <p class="sec-sub">Vyber demo které tě zajímá — nebo projdi všechna tři.</p>
+      <div style="background:rgba(245,197,66,.08);border:1px solid rgba(245,197,66,.25);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <span style="font-size:22px;">💡</span>
+        <div style="flex:1;">
+          <div style="font-size:13.5px;font-weight:700;color:var(--yellow);margin-bottom:3px;">Chceš silnější wow? Zkus to PŘED tím než čteš výsledky.</div>
+          <div style="font-size:12.5px;color:var(--muted);">Vlož Prompt A do DeepSeek, zapiš si co dostaneš — pak teprve čti co jsem čekal. Rozdíl budeš cítit víc.</div>
+        </div>
+        <a class="ll" href="https://chat.deepseek.com" target="_blank" style="flex-shrink:0;padding:7px 14px;font-size:12px;"><span class="dot dd"></span>Otevřít DeepSeek →</a>
+      </div>
 
       <div class="wow-tabs">
         <button class="wt on" onclick="showWow('general',this)">🌍 Obecné (pro každého)</button>
@@ -418,6 +427,11 @@ footer a{color:var(--accent);text-decoration:none;}
     <hr class="div">
 
     <!-- ČEKÁ NA MARTINA -->
+    <!-- STICKY MARTIN REMINDER -->
+    <div style="position:fixed;bottom:18px;left:18px;background:var(--bg2);border:1px solid rgba(245,197,66,.4);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--yellow);max-width:220px;z-index:99;box-shadow:0 4px 20px rgba(0,0,0,.4);">
+      ⏳ <strong>Hotovo?</strong> <a href="#h-wait" style="color:var(--green);text-decoration:underline;">Pošli Martinovi čísla →</a>
+    </div>
+
     <section id="h-wait">
       <div class="waiting-box">
         <div class="waiting-icon">⏳</div>
