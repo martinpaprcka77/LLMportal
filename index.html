@@ -15,7 +15,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .screen.active{display:block;}
 
 /* ── ENTRY SCREEN ── */
-#screen-entry{display:flex;align-items:center;justify-content:center;background:var(--bg);}
+#screen-entry{align-items:center;justify-content:center;background:var(--bg);}
+#screen-entry.active{display:flex;}
 .entry-wrap{text-align:center;padding:40px 24px;max-width:600px;}
 .entry-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:1px solid rgba(91,138,247,.3);background:rgba(91,138,247,.08);font-size:12px;color:var(--accent);margin-bottom:24px;}
 .entry-h1{font-size:clamp(22px,5vw,38px);font-weight:900;line-height:1.2;margin-bottom:14px;}
@@ -200,9 +201,11 @@ footer a{color:var(--accent);text-decoration:none;}
       <a class="tn" href="#h-wait">Čeká na Martina</a>
     </div>
     <div class="llm-bar">
-      <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek ← start here</a>
-      <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
-      <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
+      <a class="ll" href="https://chat.deepseek.com" target="_blank" title="DeepSeek — zdarma, bez loginu"><span class="dot dd"></span>DeepSeek <span style="opacity:.6;font-size:10px;">🆓</span></a>
+      <a class="ll" href="https://claude.ai/new" target="_blank" title="Claude — Anthropic"><span class="dot dc"></span>Claude <span style="opacity:.5;font-size:10px;">Anthropic</span></a>
+      <a class="ll" href="https://chat.openai.com" target="_blank" title="ChatGPT — OpenAI"><span class="dot dg"></span>ChatGPT <span style="opacity:.5;font-size:10px;">OpenAI</span></a>
+      <a class="ll" href="https://gemini.google.com" target="_blank" title="Gemini — Google"><span class="dot dge"></span>Gemini <span style="opacity:.5;font-size:10px;">Google</span></a>
+      <a class="ll" href="https://grok.com" target="_blank" title="Grok — xAI (Elon Musk)"><span class="dot dgr"></span>Grok <span style="opacity:.5;font-size:10px;">xAI</span></a>
     </div>
   </div>
 
@@ -479,11 +482,11 @@ footer a{color:var(--accent);text-decoration:none;}
       <a class="tn" href="#m-about">O projektu</a>
     </div>
     <div class="llm-bar">
-      <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
-      <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
-      <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek</a>
-      <a class="ll" href="https://gemini.google.com" target="_blank"><span class="dot dge"></span>Gemini</a>
-      <a class="ll" href="https://grok.com" target="_blank"><span class="dot dgr"></span>Grok</a>
+      <a class="ll" href="https://chat.deepseek.com" target="_blank" title="DeepSeek — zdarma, bez loginu"><span class="dot dd"></span>DeepSeek <span style="opacity:.6;font-size:10px;">🆓</span></a>
+      <a class="ll" href="https://claude.ai/new" target="_blank" title="Claude — Anthropic"><span class="dot dc"></span>Claude <span style="opacity:.5;font-size:10px;">Anthropic</span></a>
+      <a class="ll" href="https://chat.openai.com" target="_blank" title="ChatGPT — OpenAI"><span class="dot dg"></span>ChatGPT <span style="opacity:.5;font-size:10px;">OpenAI</span></a>
+      <a class="ll" href="https://gemini.google.com" target="_blank" title="Gemini — Google"><span class="dot dge"></span>Gemini <span style="opacity:.5;font-size:10px;">Google</span></a>
+      <a class="ll" href="https://grok.com" target="_blank" title="Grok — xAI (Elon Musk)"><span class="dot dgr"></span>Grok <span style="opacity:.5;font-size:10px;">xAI</span></a>
     </div>
   </div>
 
@@ -682,7 +685,8 @@ function enter(role){
   S.role=role; save();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+role).classList.add('active');
-  window.scrollTo(0,0);
+  history.pushState(null, '', window.location.pathname);
+  window.scrollTo({top:0,behavior:'instant'});
   if(role==='honzik') restoreHonzik();
 }
 function backToEntry(){
