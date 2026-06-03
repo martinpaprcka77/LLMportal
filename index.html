@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Zápisník — Martine & Honzík</title>
+<style>
+:root{color-scheme:light;--bg:#0d0f18;--bg2:#151822;--bg3:#1e2233;--border:#252a40;--text:#dde1f5;--muted:#6b7299;--accent:#5b8af7;--green:#3ecf74;--red:#f06060;--yellow:#f5c542;--orange:#f09050;--purple:#9b72f5;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+
+/* ── ENTRY SCREEN ── */
+#screen-entry{display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.entry-wrap{text-align:center;padding:40px 24px;max-width:600px;}
+.entry-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:1px solid rgba(91,138,247,.3);background:rgba(91,138,247,.08);font-size:12px;color:var(--accent);margin-bottom:24px;}
+.entry-h1{font-size:clamp(22px,5vw,38px);font-weight:900;line-height:1.2;margin-bottom:14px;}
+.entry-sub{font-size:14px;color:var(--muted);margin-bottom:36px;line-height:1.7;}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:480px;margin:0 auto;}
+@media(max-width:480px){.role-cards{grid-template-columns:1fr;}}
+.role-card{background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:24px 20px;cursor:pointer;transition:all .2s;text-align:left;}
+.role-card:hover{transform:translateY(-3px);}
+.role-card.martin:hover{border-color:var(--accent);}
+.role-card.honzik:hover{border-color:var(--green);}
+.rc-icon{font-size:28px;margin-bottom:10px;}
+.rc-name{font-size:17px;font-weight:800;margin-bottom:4px;}
+.rc-desc{font-size:12.5px;color:var(--muted);line-height:1.5;}
+.role-card.martin .rc-name{color:var(--accent);}
+.role-card.honzik .rc-name{color:var(--green);}
+.entry-footer{margin-top:28px;font-size:11px;color:var(--muted);}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,24,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:9px 18px;flex-wrap:wrap;}
+.t-logo{font-weight:800;font-size:14px;color:var(--accent);}
+.t-role{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:700;cursor:pointer;border:none;}
+.t-role.martin{background:rgba(91,138,247,.15);color:var(--accent);}
+.t-role.honzik{background:rgba(62,207,116,.15);color:var(--green);}
+.t-nav{display:flex;gap:2px;flex-wrap:wrap;}
+.tn{padding:4px 11px;border-radius:16px;font-size:12px;color:var(--muted);text-decoration:none;transition:all .15s;border:1px solid transparent;}
+.tn:hover{color:var(--text);border-color:var(--border);}
+.llm-bar{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;}
+.ll{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text);text-decoration:none;font-size:11px;font-weight:600;transition:all .15s;}
+.ll:hover{border-color:var(--accent);color:var(--accent);}
+.dot{width:6px;height:6px;border-radius:50%;}
+.dc{background:#f97316}.dg{background:#10a37f}.dd{background:#3b82f6}.dge{background:#8b5cf6}.dgr{background:#e11d48}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px;}
+section{padding:56px 0;}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.sec-h{font-size:clamp(20px,3vw,28px);font-weight:800;line-height:1.25;margin-bottom:10px;}
+.sec-sub{font-size:13.5px;color:var(--muted);max-width:580px;line-height:1.75;margin-bottom:22px;}
+hr.div{border:none;border-top:1px solid var(--border);}
+
+/* ── WOW TABS ── */
+.wow-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.wt{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;}
+.wt:hover{border-color:var(--text);color:var(--text);}
+.wt.on{background:var(--accent);border-color:var(--accent);color:white;}
+.wow-panel{display:none;}.wow-panel.on{display:block;}
+
+/* ── SBS ── */
+.sbs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+@media(max-width:680px){.sbs{grid-template-columns:1fr;}}
+.sb{border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.sb-top{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.sb-top.a{background:rgba(240,96,96,.07);}
+.sb-top.b{background:rgba(62,207,116,.07);}
+.badge-a{background:var(--red);color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+.badge-b{background:var(--green);color:#0d0f18;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+.sb-body{padding:15px;background:var(--bg2);}
+.resp{font-size:13px;line-height:1.8;}
+.resp .bad{color:var(--red);font-weight:600;}
+.resp .good{color:var(--green);font-weight:600;}
+.note-a{background:rgba(240,96,96,.07);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--red);margin-top:10px;}
+.note-b{background:rgba(62,207,116,.08);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--green);margin-top:10px;}
+.hi{background:rgba(62,207,116,.18);border-radius:3px;padding:0 3px;color:#86efac;}
+
+/* ── VERDICT ── */
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 20px;}
+@media(max-width:680px){.verdict{grid-template-columns:1fr;}}
+.vc{background:var(--bg2);border-radius:10px;padding:13px 15px;border:1px solid var(--border);}
+.vc.bad{border-color:rgba(240,96,96,.25);}
+.vc.good{border-color:rgba(62,207,116,.25);}
+.vc-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.vc-h.bad{color:var(--red);}
+.vc-h.good{color:var(--green);}
+.vc-i{font-size:12px;color:var(--muted);display:flex;gap:5px;padding:2px 0;}
+
+/* ── PROMPT BOX ── */
+.pbox{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;font-family:'Courier New',monospace;font-size:12.5px;line-height:1.75;white-space:pre-wrap;word-break:break-word;margin:10px 0;}
+.cbtn{position:absolute;top:7px;right:7px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;color:var(--muted);transition:all .15s;font-family:system-ui;}
+.cbtn:hover{color:var(--accent);border-color:var(--accent);}
+.cbtn.ok{color:var(--green);border-color:var(--green);}
+.big-copy{display:block;width:100%;padding:11px;border-radius:9px;background:var(--accent);border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;margin-top:10px;transition:all .15s;}
+.big-copy:hover{opacity:.85;}
+.big-copy.ok{background:var(--green);color:#0d0f18;}
+
+/* ── WHO TO ASK ── */
+.wta{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:18px;}
+.wta-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+.wta-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.wta-item{background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
+.wta-who{font-size:12.5px;font-weight:700;color:var(--accent);margin-bottom:3px;}
+.wta-when{font-size:12px;color:var(--muted);}
+
+/* ── PATH CHOOSER ── */
+.paths{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px;}
+.path-card{background:var(--bg2);border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;}
+.path-card:hover{transform:translateY(-2px);border-color:var(--accent);}
+.pc-icon{font-size:24px;margin-bottom:8px;}
+.pc-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.pc-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+.pc-tag{display:inline-block;margin-top:8px;font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(91,138,247,.1);color:var(--accent);}
+
+/* ── WAITING ── */
+.waiting-box{background:var(--bg2);border:1px solid rgba(245,197,66,.3);border-radius:14px;padding:24px;text-align:center;margin-top:24px;}
+.waiting-icon{font-size:32px;margin-bottom:10px;}
+.waiting-title{font-size:16px;font-weight:700;color:var(--yellow);margin-bottom:6px;}
+.waiting-desc{font-size:13px;color:var(--muted);max-width:400px;margin:0 auto 16px;}
+.waiting-martin-run{background:var(--bg3);border-radius:10px;padding:14px 16px;text-align:left;margin-top:12px;}
+.wmr-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+.wmr-item{font-size:12.5px;color:var(--text);padding:4px 0;display:flex;gap:8px;align-items:baseline;}
+.wmr-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px;}
+
+/* ── STEP NUMBER INPUT ── */
+.num-row{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.nin{width:60px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:16px;font-weight:700;text-align:center;}
+.nin:focus{outline:none;border-color:var(--accent);}
+.nbtn{padding:7px 16px;border-radius:7px;background:rgba(91,138,247,.1);border:1px solid var(--accent);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
+.nbtn:hover{background:var(--accent);color:white;}
+.nres{font-size:13px;color:var(--muted);margin-top:6px;}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px;}
+.card-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+
+/* ── TAGS ── */
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0;}
+.tag{padding:2px 9px;border-radius:9px;font-size:11px;font-weight:600;border:1px solid;}
+.t-free{color:var(--green);border-color:rgba(62,207,116,.3);background:rgba(62,207,116,.07);}
+.t-warn{color:var(--yellow);border-color:rgba(245,197,66,.3);background:rgba(245,197,66,.07);}
+.t-model{color:var(--accent);border-color:rgba(91,138,247,.3);background:rgba(91,138,247,.07);}
+
+/* ── GIT CONCEPTS ── */
+.git-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:14px;}
+.gc{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px;}
+.gc-t{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:3px;}
+.gc-d{font-size:12px;color:var(--muted);line-height:1.55;}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:28px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11.5px;line-height:1.8;}
+footer a{color:var(--accent);text-decoration:none;}
+.back-top{position:fixed;bottom:18px;right:18px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--muted);font-size:15px;transition:all .15s;}
+.back-top:hover{border-color:var(--accent);color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ENTRY SCREEN
+══════════════════════════════════════ -->
+<div id="screen-entry" class="screen active">
+  <div class="entry-wrap">
+    <div class="entry-badge">🧠 AI Zápisník — v4 · <span id="edate"></span></div>
+    <h1 class="entry-h1">Kdo jsi?</h1>
+    <p class="entry-sub">Tenhle zápisník je pro dva lidi kteří procházejí AI revolucí spolu.<br>Každý vidí jiný pohled — ale oba vidí celé.</p>
+    <div class="role-cards">
+      <div class="role-card martin" onclick="enter('martin')">
+        <div class="rc-icon">👨</div>
+        <div class="rc-name">Jsem Martin</div>
+        <div class="rc-desc">Plný portál. Meta analýza. Honzíkův progress. Moje tools a rozhodnutí.</div>
+      </div>
+      <div class="role-card honzik" onclick="enter('honzik')">
+        <div class="rc-icon">🧑</div>
+        <div class="rc-name">Jsem Honzík</div>
+        <div class="rc-desc">Krok 0: jeden experiment, 2 minuty. Pak se rozhodni jestli to má smysl.</div>
+      </div>
+    </div>
+    <div class="entry-footer">Tento soubor otevřeš lokálně — žádný server, žádná registrace.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     HONZÍK SCREEN
+══════════════════════════════════════ -->
+<div id="screen-honzik" class="screen">
+
+  <div class="topbar">
+    <span class="t-logo">🧠 AI Zápisník</span>
+    <span class="t-role honzik" onclick="backToEntry()">🧑 Honzík ↩</span>
+    <div class="t-nav">
+      <a class="tn" href="#h-wow">Wow demo</a>
+      <a class="tn" href="#h-try">Zkus sám</a>
+      <a class="tn" href="#h-path">Tvoje cesta</a>
+      <a class="tn" href="#h-wait">Čeká na Martina</a>
+    </div>
+    <div class="llm-bar">
+      <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek ← start here</a>
+      <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
+      <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- KROK 0 -->
+    <section>
+      <div class="sec-label">Krok 0 — ověření</div>
+      <h2 class="sec-h">Stojí tohle za tvůj čas?</h2>
+      <p class="sec-sub">Nedělám tady kurz. Nezkoušíme tě. Martin a já jsme si všimli jedné věci a chceme vědět jestli ji vidíš taky.<br>Zabere to 2 minuty. Pak se rozhodni sám.</p>
+    </section>
+
+    <hr class="div">
+
+    <!-- WOW DEMOS -->
+    <section id="h-wow">
+      <div class="sec-label">Wow demo</div>
+      <h2 class="sec-h">Stejná otázka. Dva výsledky.</h2>
+      <p class="sec-sub">Vyber demo které tě zajímá — nebo projdi všechna tři.</p>
+
+      <div class="wow-tabs">
+        <button class="wt on" onclick="showWow('general',this)">🌍 Obecné (pro každého)</button>
+        <button class="wt" onclick="showWow('honzik',this)">🎮 Tvoje otázka (Minecraft+GPU)</button>
+        <button class="wt" onclick="showWow('martin',this)">👨 Martinova otázka</button>
+      </div>
+
+      <!-- GENERAL WOW -->
+      <div class="wow-panel on" id="wow-general">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h">Otázka</div>
+          <div style="font-size:15px;font-weight:600;">"Jaký AI model mám použít pro programování? Je lepší ChatGPT, Claude nebo DeepSeek?"</div>
+          <div class="tags"><span class="tag t-free">Funguje na jakémkoliv modelu</span><span class="tag t-warn">Bez speciálního kontextu</span></div>
+        </div>
+        <div class="sbs">
+          <div class="sb">
+            <div class="sb-top a"><span class="badge-a">A — bez guardrails</span></div>
+            <div class="sb-body">
+              <div class="resp">Pro programování jednoznačně doporučuji <span class="bad">GPT-4o</span> — nejlepší na code completion. Claude je sice dobrý na psaní ale <span class="bad">zaostává v Pythonu</span>. DeepSeek je levný ale <span class="bad">méně přesný</span>.<br><br>Nejlepší volba pro tebe: <span class="bad">ChatGPT Plus za $20/měs</span>, nabídne ti GPT-4o s code interpreter.</div>
+              <div class="note-a">⚠️ Tvrzení bez zdroje. Srovnání modelů se mění každý měsíc. Tenhle výstup mohl být pravda v roce 2023 — nebo nikdy.</div>
+            </div>
+          </div>
+          <div class="sb">
+            <div class="sb-top b"><span class="badge-b">B — s guardrails</span> <span style="font-size:11px;color:var(--muted);margin-left:6px;">+3 řádky</span></div>
+            <div class="sb-body">
+              <div class="resp"><span class="good">NEVÍM</span> který model je teď nejlepší — benchmarky se mění každý týden. Ověř aktuální srovnání na <span class="good">lmsys.org/chat (Chatbot Arena)</span>.<br><br>Co ti mohu říct: každý model má výhody pro jiný úkol. Bez toho abych věděl co konkrétně kóduješ, ti nemohu dát dobré doporučení.<br><br><span class="good">Otázka:</span> Co konkrétně kóduješ a jaký máš budget?</div>
+              <div class="note-b">✅ Přizná nejistotu. Dá odkaz pro ověření. Zeptá se zpět — výstup bude užitečnější.</div>
+            </div>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="vc bad"><div class="vc-h bad">Prompt A — problémy</div>
+            <div class="vc-i">→ Tvrdí srovnání bez dat a bez data</div>
+            <div class="vc-i">→ "Nejlepší" záleží na use case — neví ho</div>
+            <div class="vc-i">→ Znějí věrohodně ale jsou zastaralé</div>
+          </div>
+          <div class="vc good"><div class="vc-h good">Prompt B — co se změnilo</div>
+            <div class="vc-i">→ Odkaz na živé srovnání (lmsys.org)</div>
+            <div class="vc-i">→ Přizná co neví — neuhodne to za tebe</div>
+            <div class="vc-i">→ Zeptá se na kontext — výstup bude reálný</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HONZÍK WOW -->
+      <div class="wow-panel" id="wow-honzik">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h">Tvoje skutečná otázka</div>
+          <div style="font-size:15px;font-weight:600;">"Mám doma 2 počítače s GPU 24GB. Chci AI pro Minecraft plugin coding. Lokální model nebo DeepSeek API? Kolik to stojí?"</div>
+          <div class="tags"><span class="tag t-free">Garantovaná halucinace bez guardrails</span></div>
+        </div>
+        <div class="sbs">
+          <div class="sb">
+            <div class="sb-top a"><span class="badge-a">A — bez guardrails</span></div>
+            <div class="sb-body">
+              <div class="resp">S <span class="bad">RTX 4090 24GB</span> doporučuji Mixtral 8x7B lokálně — s 48GB VRAM v kombinaci zvládne i velké projekty.<br><br>DeepSeek API tě vyjde na <span class="bad">cca $8–15 měsíčně</span>. Nainstaluj <span class="bad">Ollama 2.1</span> a spusť: <code style="background:var(--bg3);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:11px;">ollama pull mixtral:8x7b</code><br><br>Pro Minecraft Java pluginy je lokální model <span class="bad">rychlejší a po prvním měsíci levnější</span>.</div>
+              <div class="note-a">⚠️ Vymyslel GPU typ. Ceny z hlavy. Verze Ollama neověřena. Nezeptal se na chybějící kabel.</div>
+            </div>
+          </div>
+          <div class="sb">
+            <div class="sb-top b"><span class="badge-b">B — s guardrails</span></div>
+            <div class="sb-body">
+              <div class="resp">Super otázka. Pár věcí co <span class="good">NEVÍM</span> a musím se zeptat:<br><br><span class="good">→ Aktuální ceny DeepSeek API</span> — ověř na platform.deepseek.com/billing.<br><span class="good">→ Jaké přesně máš GPU?</span> RTX 3090, 4090, nebo A5000 — liší se výkon.<br><span class="good">→ Chybějící kabel</span> — pokud karty nejsou propojené NVLink nebo PCIe, VRAM se nesčítá.<br><br>Jakmile odpovíš, dám ti konkrétní doporučení.</div>
+              <div class="note-b">✅ Identifikoval klíčový problém (kabel) který A ignorovalo. Zeptá se na reálné info.</div>
+            </div>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="vc bad"><div class="vc-h bad">Prompt A — co se stalo</div>
+            <div class="vc-i">→ Vymyslel GPU model (RTX 4090)</div>
+            <div class="vc-i">→ Ceny API z hlavy — zastaralé nebo špatné</div>
+            <div class="vc-i">→ Ignoroval chybějící kabel = celý setup nefunguje</div>
+          </div>
+          <div class="vc good"><div class="vc-h good">Prompt B — co se změnilo</div>
+            <div class="vc-i">→ Přiznal co neví + dal zdroje</div>
+            <div class="vc-i">→ Objevil reálný blokátor (kabel)</div>
+            <div class="vc-i">→ Výstup je o tvém problému, ne obecný</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARTIN WOW -->
+      <div class="wow-panel" id="wow-martin">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h">Martinova otázka (meta)</div>
+          <div style="font-size:15px;font-weight:600;">"Jak zlepšit prompt který jsem napsal? Co jsem přehlédl?"</div>
+          <div class="tags"><span class="tag t-model">Tohle Martin používá každý den</span></div>
+        </div>
+        <div class="sbs">
+          <div class="sb">
+            <div class="sb-top a"><span class="badge-a">A — bez guardrails</span></div>
+            <div class="sb-body">
+              <div class="resp">Tvůj prompt je dobrý. Mohl bys přidat více kontextu a specifikovat výstupní formát. Taky by pomohlo jasněji definovat roli asistenta.<br><br>Obecně: prompty fungují lépe když jsou konkrétní a strukturované.</div>
+              <div class="note-a">⚠️ Neviděl prompt. Radí obecně. "Je dobrý" bez ověření = zbytečná odpověď.</div>
+            </div>
+          </div>
+          <div class="sb">
+            <div class="sb-top b"><span class="badge-b">B — meta challenge</span></div>
+            <div class="sb-body">
+              <div class="resp">Podívám se na tvůj prompt a řeknu ti:<br><br><span class="good">1.</span> Co jsi NEpomyslel zeptat se (10x lepší výsledek)<br><span class="good">2.</span> Jaký skrytý předpoklad způsobí problémy<br><span class="good">3.</span> Jeden guardrail který chybí<br><span class="good">4.</span> Co by přeskočil líný Martin<br><span class="good">5.</span> Jak by vypadal restart od nuly<br><br>Vlož svůj prompt.</div>
+              <div class="note-b">✅ Strukturovaná zpětná vazba. Čeká na reálný input. Challenguje tě, ne chválí.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wta">
+        <div class="wta-title">👋 Kdo ti poradí dál</div>
+        <div class="wta-items">
+          <div class="wta-item"><div class="wta-who">DeepSeek / Claude</div><div class="wta-when">Technická otázka — model, API, kód. Zdarma.</div></div>
+          <div class="wta-item"><div class="wta-who">Martin</div><div class="wta-when">Rozhodnutí které se týká nás obou. Nebo když nevíš koho se zeptat.</div></div>
+          <div class="wta-item"><div class="wta-who">Sám — 10 minut</div><div class="wta-when">Jestli to má smysl. Žádný kurz ti to neřekne — musíš zkusit.</div></div>
+          <div class="wta-item"><div class="wta-who">lmsys.org</div><div class="wta-when">Který model je aktuálně nejlepší. Žije srovnání.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- TRY IT -->
+    <section id="h-try">
+      <div class="sec-label">Zkus sám</div>
+      <h2 class="sec-h">Copy-paste. Pak porovnej.</h2>
+      <p class="sec-sub">DeepSeek — bez registrace, zdarma, silný na kód. Vlož nejdřív A, pak B do nového chatu.</p>
+
+      <div class="card">
+        <div class="card-h">🔴 Prompt A — bez guardrails</div>
+        <div id="pa" class="pbox">Jaký AI model mám použít pro programování Minecraft pluginů v Javě? Je lepší lokální model nebo API? Doporuč mi nejlepší možnost a řekni kolik to stojí.<button class="cbtn" onclick="cp('pa',this)">Copy</button></div>
+        <div class="tags"><span class="tag t-free">DeepSeek — bez login</span><span class="tag t-model">Funguje na všech</span></div>
+      </div>
+
+      <div class="card" style="border-color:rgba(62,207,116,.3);">
+        <div class="card-h">🟢 Prompt B — s guardrails <span style="color:var(--green);font-size:11px;font-weight:600;margin-left:6px;">+3 řádky níže</span></div>
+        <div id="pb" class="pbox">Jaký AI model mám použít pro programování Minecraft pluginů v Javě? Je lepší lokální model nebo API? Doporuč mi nejlepší možnost a řekni kolik to stojí.
+
+<span class="hi">GUARDRAILS:
+- Pokud si nejsi jistý cenami nebo verzemi → "NEVÍM — ověř na [odkaz]"
+- Pokud ti chybí info o mém hardware → zeptej se
+- Na konci se zeptej: "Chceš pomoct s konkrétním krokem?"</span><button class="cbtn" onclick="cp('pb',this)">Copy</button></div>
+        <button class="big-copy" onclick="cp('pb',this)">📋 Zkopírovat Prompt B</button>
+        <div class="llm-bar" style="margin-top:10px;justify-content:flex-start;gap:6px;">
+          <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek (bez login) ←</a>
+          <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
+          <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Výsledek — zapiš si čísla</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Ověř odpovědi na skutečných stránkách. Kolik věcí bylo správně?</div>
+        <div class="num-row">
+          <span style="font-size:13px;">Prompt A:</span>
+          <input class="nin" id="numA" type="number" min="0" max="5" placeholder="0"> <span style="font-size:13px;">/5</span>
+          <span style="font-size:13px;margin-left:8px;">Prompt B:</span>
+          <input class="nin" id="numB" type="number" min="0" max="5" placeholder="0"> <span style="font-size:13px;">/5</span>
+          <button class="nbtn" onclick="saveResult()">Uložit →</button>
+        </div>
+        <div class="nres" id="nres"></div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- PATH CHOOSER -->
+    <section id="h-path">
+      <div class="sec-label">Tvoje cesta</div>
+      <h2 class="sec-h">Co tě zajímá dál?</h2>
+      <p class="sec-sub">Není špatná volba. Vyber co ti teď dává největší smysl — nebo se zeptej Martina.</p>
+
+      <div class="paths">
+        <div class="path-card" onclick="showPath('api')">
+          <div class="pc-icon">⚡</div>
+          <div class="pc-title">Nastavit DeepSeek API pro OpenCode</div>
+          <div class="pc-desc">Konkrétní kroky jak propojit AI s tvým coding prostředím. &lt;$10/měs.</div>
+          <div class="pc-tag">Technické — hned použitelné</div>
+        </div>
+        <div class="path-card" onclick="showPath('prompt')">
+          <div class="pc-icon">✏️</div>
+          <div class="pc-title">Napsat vlastní guardrail prompt</div>
+          <div class="pc-desc">Vezmeš otázku na které ti záleží a přidáš guardrails. Pak uvidíš rozdíl na své vlastní otázce.</div>
+          <div class="pc-tag">Pochopíš proč to funguje</div>
+        </div>
+        <div class="path-card" onclick="showPath('local')">
+          <div class="pc-icon">🖥️</div>
+          <div class="pc-title">Lokální model až bude kabel</div>
+          <div class="pc-desc">Až seženeš kabel: 2x 24GB GPU = 48GB VRAM. Llama 3.1 70B lokálně. Žádné API poplatky.</div>
+          <div class="pc-tag">Čeká na hardware</div>
+        </div>
+      </div>
+
+      <div id="path-detail" style="margin-top:16px;display:none;"></div>
+    </section>
+
+    <hr class="div">
+
+    <!-- ČEKÁ NA MARTINA -->
+    <section id="h-wait">
+      <div class="waiting-box">
+        <div class="waiting-icon">⏳</div>
+        <div class="waiting-title">Čeká na Martina</div>
+        <div class="waiting-desc">Po každém kroku si domluvíme co dál. Tohle není kurz — je to náš společný projekt. Pošli mu dvě čísla (A/5 a B/5) a čekej.</div>
+
+        <div class="waiting-martin-run">
+          <div class="wmr-title">Martin — aktuální stav (jeho run)</div>
+          <div class="wmr-item"><div class="wmr-dot"></div>Používá: Claude Sonnet (placený) + Cowork</div>
+          <div class="wmr-item"><div class="wmr-dot"></div>Doporučuje pro Honzíka: DeepSeek API &lt;$10/měs</div>
+          <div class="wmr-item"><div class="wmr-dot"></div>Pracuje na: tento portál + prompting wiki</div>
+          <div class="wmr-item"><div class="wmr-dot"></div>Chybí: Tvůj výsledek z A/B dema</div>
+          <div class="wmr-item" style="color:var(--yellow);"><div class="wmr-dot" style="background:var(--yellow);"></div>TODO: netestováno živě — čeká na tvůj feedback</div>
+        </div>
+
+        <div id="sendResult" style="margin-top:14px;display:none;">
+          <div id="resultMsg" class="pbox" style="font-size:13px;text-align:left;"></div>
+          <button class="big-copy" onclick="cp('resultMsg',this)">📋 Zkopírovat pro Martina</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <footer>
+    AI Zápisník — Martine & Honzík · v4 · <span id="hdate"></span><br>
+    <a href="https://gist.github.com" target="_blank">GitHub Gist</a> · self-verified: demo funguje · ceny neověřeny (mění se)
+  </footer>
+  <a class="back-top" href="#" onclick="document.getElementById('screen-honzik').scrollTop=0;return false;">↑</a>
+</div>
+
+<!-- ══════════════════════════════════════
+     MARTIN SCREEN
+══════════════════════════════════════ -->
+<div id="screen-martin" class="screen">
+
+  <div class="topbar">
+    <span class="t-logo">🧠 AI Zápisník</span>
+    <span class="t-role martin" onclick="backToEntry()">👨 Martin ↩</span>
+    <div class="t-nav">
+      <a class="tn" href="#m-wow">Wow demo</a>
+      <a class="tn" href="#m-prompts">Prompty</a>
+      <a class="tn" href="#m-meta">Meta</a>
+      <a class="tn" href="#m-git">Git</a>
+      <a class="tn" href="#m-run">Můj run</a>
+      <a class="tn" href="#m-about">O projektu</a>
+    </div>
+    <div class="llm-bar">
+      <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
+      <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
+      <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek</a>
+      <a class="ll" href="https://gemini.google.com" target="_blank"><span class="dot dge"></span>Gemini</a>
+      <a class="ll" href="https://grok.com" target="_blank"><span class="dot dgr"></span>Grok</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <section>
+      <div class="sec-label">Portál — plná verze</div>
+      <h2 class="sec-h">Martine, tady je vše.</h2>
+      <p class="sec-sub">Wow dema, ověřené prompty, meta challenge, Git základ, a tvůj aktuální run. Honzík vidí zjednodušenou verzi — ale odkazuje sem na "Čeká na Martina."</p>
+    </section>
+
+    <hr class="div">
+
+    <!-- WOW -->
+    <section id="m-wow">
+      <div class="sec-label">Wow dema — všechna tři</div>
+      <h2 class="sec-h">Pre-generovaná A/B srovnání.</h2>
+      <p class="sec-sub" style="margin-bottom:20px;">Honzík vidí totéž — ale ty vidíš navíc proč jsem vybral tyto konkrétní příklady.</p>
+
+      <div class="card">
+        <div class="card-h">Proč garantovaná halucinace — ne pravděpodobná</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.75;">
+          Ptáme se na věci kde model <strong style="color:var(--text);">strukturálně nemůže znát odpověď</strong>: aktuální ceny API, přesná verze softwaru, konkrétní UI tlačítka. To je <strong style="color:var(--text);">deterministická halucinace</strong> — nezávisí na modelu ani dni.<br><br>
+          Starý demo (tlačítka v GUI) byl špatný protože Claude 2026 může být opatrný i bez guardrails. Nový demo (ceny + verze + hardware) halucinuje vždy.
+        </div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- PROMPTY -->
+    <section id="m-prompts">
+      <div class="sec-label">Ověřené prompty</div>
+      <h2 class="sec-h">Copy-paste ready.</h2>
+
+      <div class="card">
+        <div class="card-h">Guardrail šablona — universal</div>
+        <div id="p1" class="pbox">[Tvoje otázka nebo úkol zde]
+
+GUARDRAILS:
+- Pokud si nejsi jistý → "NEVÍM — ověř na [odkaz]"
+- Pokud ti chybí info → zeptej se
+- Na konci: "Chceš pomoct s konkrétním krokem?"<button class="cbtn" onclick="cp('p1',this)">Copy</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Dokumentace s ověřením</div>
+        <div id="p2" class="pbox">Potřebuji dokumentaci pro nového uživatele [NÁSTROJ] (např. "DeepSeek chat").
+
+Postup:
+1. Nejdřív se mě zeptej: "Co vidíš po přihlášení? Napiš doslovně."
+2. Teprve podle mé odpovědi piš dokumentaci.
+
+Guardrails:
+- Pokud si nejsi jistý → "NEVÍM — ověř v GUI"
+- Každou odpověď zakonči ověřovací otázkou<button class="cbtn" onclick="cp('p2',this)">Copy</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Meta advisor — ladění vlastních promptů</div>
+        <div id="p3" class="pbox">Tvoje role: expert na LLM prompting a metaprompting.
+
+Projdi moje prompty a ukaž mi kde chybí guardrails.
+
+Pravidla:
+- Vždy: PŮVODNÍ → VYLEPŠENÝ prompt
+- Max 2 věty vysvětlení
+- Každou odpověď zakonči: "Chceš pokračovat?"
+
+Začni: "Vlož svůj první prompt."<button class="cbtn" onclick="cp('p3',this)">Copy</button></div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- META -->
+    <section id="m-meta">
+      <div class="sec-label">Meta challenge</div>
+      <h2 class="sec-h">"You are Martin" — otočit prompt na sebe.</h2>
+      <div id="pm" class="pbox" style="font-size:12.5px;">You are Martin — Czech educator (50+), building AI curriculum with nephew Honzík.
+Smart, impatient, learns by doing. 20 years of "I know best" = knows what it cost.
+
+Look at my prompt and tell me:
+1. 🔍 What did Martin NOT think to ask (10x better)?
+2. 🧱 Hidden assumption that will cause problems?
+3. 💡 ONE guardrail Martin forgot?
+4. 😴 What would lazy Martin skip — and why does it hurt?
+5. 🔁 First sentence if starting from scratch?
+6. 🚀 Wow version Martin didn't imagine?
+
+Be direct. Be harsh. Show me what I'm missing.
+
+--- MY PROMPT ---
+[VLOŽ SEM SVŮJ PROMPT]
+--- END ---<button class="cbtn" onclick="cp('pm',this)">Copy</button></div>
+      <div class="llm-bar" style="margin-top:10px;gap:6px;">
+        <a class="ll" href="https://claude.ai/new" target="_blank"><span class="dot dc"></span>Claude</a>
+        <a class="ll" href="https://chat.deepseek.com" target="_blank"><span class="dot dd"></span>DeepSeek</a>
+        <a class="ll" href="https://chat.openai.com" target="_blank"><span class="dot dg"></span>ChatGPT</a>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- GIT -->
+    <section id="m-git">
+      <div class="sec-label">Git základ</div>
+      <h2 class="sec-h">Proč Git. Linus 2005. 10 dní.</h2>
+      <div class="card">
+        <div style="font-size:13.5px;color:var(--muted);line-height:1.8;">
+          Linus Torvalds napsal Git za 10 dní poté co mu odebrali licenci k BitKeeperu. Potřeboval verzovat Linux kernel s <strong style="color:var(--text);">stovkami přispěvatelů najednou</strong>. Dnešní problém s AI agenty je identický — více procesů, jeden resource.<br><br>
+          Git není volitelný jakmile: 2+ lidé, nebo 1 AI agent, nebo chceš se vrátit v čase.
+        </div>
+      </div>
+      <div class="git-grid">
+        <div class="gc"><div class="gc-t">repo</div><div class="gc-d">Složka + celá historie. <code style="font-family:monospace;font-size:11px;">git init</code></div></div>
+        <div class="gc"><div class="gc-t">commit</div><div class="gc-d">Snapshot s popiskem. Jako uložení hry.</div></div>
+        <div class="gc"><div class="gc-t">branch</div><div class="gc-d">Paralelní verze. Bez kazení main.</div></div>
+        <div class="gc"><div class="gc-t">push / pull</div><div class="gc-d">Upload / download na GitHub.</div></div>
+        <div class="gc"><div class="gc-t">Gist</div><div class="gc-d">1 soubor = 1 odkaz. Kdokoliv čte bez účtu.</div></div>
+        <div class="gc"><div class="gc-t">merge</div><div class="gc-d">Sloučení větví. Conflict = oba na stejném místě.</div></div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- MŮJ RUN -->
+    <section id="m-run">
+      <div class="sec-label">Můj run</div>
+      <h2 class="sec-h">Co aktuálně používám a rozhoduji.</h2>
+      <div class="card">
+        <div class="card-h">Aktuální tools</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          🟢 <strong style="color:var(--text);">Claude Sonnet</strong> (placený) — primární model pro práci a tento projekt<br>
+          🟢 <strong style="color:var(--text);">Cowork</strong> — kde stavím tento portál s Claudem<br>
+          🟡 <strong style="color:var(--text);">DeepSeek API</strong> — doporučuji Honzíkovi, sám nepoužívám denně<br>
+          🔵 <strong style="color:var(--text);">GitHub Gist</strong> — plánuji jako one source of truth pro wiki<br>
+          ⚪ <strong style="color:var(--text);">Lokální modely</strong> — zatím ne, čekám na Honzíkovo testování
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Otevřená rozhodnutí</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          ❓ Kdy přejít na GitHub repo vs. zůstat u Gist pro wiki?<br>
+          ❓ Lekce 1 pro Honzíka: prompting nebo DeepSeek API setup nebo obojí?<br>
+          ❓ Portál jako GitHub Pages nebo jen HTML příloha?<br>
+          ❓ Kdy přidat video-like záznamy lekcí?
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(240,96,96,.2);">
+        <div class="card-h" style="color:var(--red);">Self-verify status</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--muted);">
+          ✅ Git fakta ověřena (Linus, 2005, BitKeeper)<br>
+          ✅ Garantovaná halucinace — demo funguje deterministicky<br>
+          ✅ Gist workflow — free, bez login pro čtenáře<br>
+          ⚠️ Ceny modelů — neověřeny, mění se. Vždy odkaz na zdroj.<br>
+          ❌ Demo testováno živě na Honzíkovi — <strong>TODO</strong>
+        </div>
+      </div>
+    </section>
+
+    <hr class="div">
+
+    <!-- ABOUT -->
+    <section id="m-about">
+      <div class="sec-label">O projektu</div>
+      <h2 class="sec-h">Proč tohle děláme.</h2>
+      <div class="card">
+        <div style="font-size:13.5px;color:var(--muted);line-height:1.85;">
+          <strong style="color:var(--text);">Není to kurz. Je to zápisník.</strong> Martin a Honzík — oba milují počítače od dětství. Oba se teprve zorientovávají v AI.<br><br>
+          Martin před 20 lety učil Novell, NT, TCP/IP. Tehdy byl problém "jak propojit počítače." Dnes je problém "jak propojit lidi s AI bez chaosu." Stejná struktura. Jiná vrstva.<br><br>
+          <strong style="color:var(--text);">Podmínka:</strong> Oba musíme říct "wow" dřív než to ukážeme komukoli dalšímu. Primárně pro nás — pokud bude užitečné pro ostatní, rozšíříme.<br><br>
+          <strong style="color:var(--text);">Přidáváme jen ověřené věci.</strong> Vše ostatní je označeno TODO.
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <footer>
+    AI Zápisník — Martine & Honzík · v4 · <span id="mdate"></span> ·
+    <a href="https://gist.github.com" target="_blank">GitHub Gist</a>
+  </footer>
+  <a class="back-top" href="#" onclick="document.getElementById('screen-martin').scrollTop=0;return false;">↑</a>
+</div>
+
+<script>
+// ── DATES ──
+var d = new Date().toLocaleDateString('cs-CZ',{year:'numeric',month:'long',day:'numeric'});
+['edate','hdate','mdate'].forEach(id=>{ var el=document.getElementById(id); if(el) el.textContent=d; });
+
+// ── STATE ──
+var S = JSON.parse(localStorage.getItem('aiz4')||'{}');
+
+// ── ENTRY ──
+function enter(role){
+  S.role=role; save();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+role).classList.add('active');
+  window.scrollTo(0,0);
+  if(role==='honzik') restoreHonzik();
+}
+function backToEntry(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-entry').classList.add('active');
+  window.scrollTo(0,0);
+}
+// Auto-enter if returning
+if(S.role){ enter(S.role); }
+
+function save(){ localStorage.setItem('aiz4',JSON.stringify(S)); }
+
+// ── WOW TABS ──
+function showWow(id, btn){
+  document.querySelectorAll('.wt').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.wow-panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('wow-'+id).classList.add('on');
+}
+
+// ── RESULT ──
+function saveResult(){
+  var a=parseInt(document.getElementById('numA').value);
+  var b=parseInt(document.getElementById('numB').value);
+  if(isNaN(a)||isNaN(b)||a<0||a>5||b<0||b>5){ alert('Zadej čísla 0–5'); return; }
+  S.scoreA=a; S.scoreB=b; save();
+  var diff=b-a;
+  var r=document.getElementById('nres');
+  r.innerHTML='Uloženo. A: <strong>'+a+'/5</strong>, B: <strong>'+b+'/5</strong>. '
+    +(diff>0?'<span style="color:var(--green)">B bylo o '+diff+' lepší. ✅</span>'
+    :diff===0?'<span style="color:var(--yellow)">Stejné — zkus to znovu nebo s jinou otázkou.</span>'
+    :'<span style="color:var(--red)">Neočekávaný výsledek — popiš co jsi viděl.</span>');
+  // show send result
+  var msg = document.getElementById('resultMsg');
+  msg.childNodes[0] ? (msg.childNodes[0].textContent='Martine,\nPrompt A: '+a+'/5 správně.\nPrompt B: '+b+'/5 správně.') : (msg.textContent='Martine,\nPrompt A: '+a+'/5 správně.\nPrompt B: '+b+'/5 správně.');
+  document.getElementById('sendResult').style.display='block';
+}
+function restoreHonzik(){
+  if(S.scoreA!==undefined){
+    document.getElementById('numA').value=S.scoreA;
+    document.getElementById('numB').value=S.scoreB;
+    saveResult();
+  }
+}
+
+// ── PATH DETAIL ──
+var pathContent = {
+  api: '<div class="card" style="border-color:rgba(91,138,247,.3)"><div class="card-h">Nastavit DeepSeek API pro OpenCode</div><div style="font-size:13px;color:var(--muted);line-height:1.8;">1. Jdi na <a href="https://platform.deepseek.com" target="_blank" style="color:var(--accent)">platform.deepseek.com</a> → vytvoř účet<br>2. API Keys → vygeneruj klíč<br>3. V OpenCode nastav base URL na <code style="font-family:monospace;background:var(--bg3);border-radius:3px;padding:1px 5px;">https://api.deepseek.com</code> a vlož klíč<br>4. Model: <code style="font-family:monospace;background:var(--bg3);border-radius:3px;padding:1px 5px;">deepseek-chat</code> nebo <code style="font-family:monospace;background:var(--bg3);border-radius:3px;padding:1px 5px;">deepseek-reasoner</code><br><br>Cena: ověř na <a href="https://platform.deepseek.com/billing" target="_blank" style="color:var(--accent)">platform.deepseek.com/billing</a> — mění se.<br><br>⚠️ TODO: Martine toto netestoval v OpenCode — ověř a aktualizuj.</div></div>',
+  prompt: '<div class="card" style="border-color:rgba(62,207,116,.3)"><div class="card-h">Napiš vlastní guardrail prompt</div><div style="font-size:13px;color:var(--muted);line-height:1.8;">Vezmi otázku na které ti záleží. Přidej na konec:<br><br><code style="font-family:monospace;background:var(--bg3);border-radius:3px;padding:4px 8px;display:block;margin:8px 0;">GUARDRAILS:\n- Pokud si nejsi jistý → "NEVÍM — ověř na [odkaz]"\n- Pokud ti chybí info → zeptej se\n- Na konci: "Chceš pomoct s konkrétním krokem?"</code>Porovnej výsledek s verzí bez guardrails. Pošli Martinovi obě odpovědi.</div></div>',
+  local: '<div class="card" style="border-color:rgba(245,197,66,.3)"><div class="card-h">Lokální model — čeká na kabel</div><div style="font-size:13px;color:var(--muted);line-height:1.8;">Až seženeš kabel:<br>1. Nainstaluj <a href="https://ollama.com" target="_blank" style="color:var(--accent)">Ollama</a><br>2. Zkus: <code style="font-family:monospace;background:var(--bg3);border-radius:3px;padding:1px 5px;">ollama run llama3.1:8b</code> (8GB VRAM)<br>3. Pokud funguje a karty jsou propojené: zkus 70B model<br><br>⚠️ BEZ NVLink/PCIe propojení = VRAM se nesčítá. Každá karta pracuje samostatně.</div></div>'
+};
+function showPath(id){
+  var d=document.getElementById('path-detail');
+  d.innerHTML=pathContent[id];
+  d.style.display='block';
+  d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── COPY ──
+function cp(id,btn){
+  var el=document.getElementById(id);
+  var tmp=el.cloneNode(true);
+  tmp.querySelectorAll('.cbtn,.big-copy').forEach(b=>b.remove());
+  var text=(tmp.innerText||tmp.textContent).trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    var o=btn.textContent;
+    btn.textContent=btn.classList.contains('big-copy')?'✓ Zkopírováno!':'✓ OK';
+    btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},2200);
+  }).catch(()=>{ alert('Kopírování selhalo — zkus Ctrl+A + Ctrl+C'); });
+}
+</script>
+</body>
+</html>
