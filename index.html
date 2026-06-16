@@ -4,11 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Zápisník — Martine & Honzík</title>
+<meta name="description" content="Společný zápisník Martina a Honzíka o práci s AI: wow dema, A/B srovnání promptů, guardrails, ověřené prompty a Git základ. Bez registrace, zdarma, v prohlížeči.">
+<meta name="author" content="Martin & Honzík">
+<meta name="theme-color" content="#0d0f18">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- Open Graph / social -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI Zápisník — Martine & Honzík">
+<meta property="og:description" content="Wow dema, A/B srovnání promptů, guardrails a Git základ. Bez registrace, zdarma, v prohlížeči.">
+<meta property="og:url" content="https://martinpaprcka77.github.io/LLMportal/">
+<meta name="twitter:card" content="summary">
 <style>
-:root{color-scheme:light;--bg:#0d0f18;--bg2:#151822;--bg3:#1e2233;--border:#252a40;--text:#dde1f5;--muted:#6b7299;--accent:#5b8af7;--green:#3ecf74;--red:#f06060;--yellow:#f5c542;--orange:#f09050;--purple:#9b72f5;}
+:root{color-scheme:dark;--bg:#0d0f18;--bg2:#151822;--bg3:#1e2233;--border:#252a40;--text:#dde1f5;--muted:#6b7299;--accent:#5b8af7;--green:#3ecf74;--red:#f06060;--yellow:#f5c542;--orange:#f09050;--purple:#9b72f5;--shadow:rgba(0,0,0,.4);}
+html[data-theme="light"]{color-scheme:light;--bg:#f5f7fc;--bg2:#ffffff;--bg3:#eef1fa;--border:#d8deee;--text:#1c2236;--muted:#5b6480;--accent:#3563d6;--green:#159a52;--red:#d23b3b;--yellow:#b8860b;--orange:#c96a23;--purple:#6f46d6;--shadow:rgba(60,80,140,.16);}
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;transition:background .25s,color .25s;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.screen.active section,.screen.active .topbar{animation:fadeUp .4s ease both;}
 
 /* ── SCREENS ── */
 .screen{display:none;min-height:100vh;}
@@ -48,6 +65,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .ll:hover{border-color:var(--accent);color:var(--accent);}
 .dot{width:6px;height:6px;border-radius:50%;}
 .dc{background:#f97316}.dg{background:#10a37f}.dd{background:#3b82f6}.dge{background:#8b5cf6}.dgr{background:#e11d48}
+.t-toggle{margin-left:6px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;width:30px;height:26px;font-size:13px;cursor:pointer;color:var(--text);transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+.t-toggle:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── PROGRESS TRACKER ── */
+.prog{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:22px;}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.prog-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.prog-pct{font-size:12px;font-weight:700;color:var(--green);}
+.prog-bar{height:7px;border-radius:5px;background:var(--bg3);overflow:hidden;margin-bottom:12px;}
+.prog-fill{height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .5s ease;}
+.prog-steps{display:flex;gap:7px;flex-wrap:wrap;}
+.prog-step{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;transition:all .15s;}
+.prog-step:hover{border-color:var(--accent);}
+.prog-step .box{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.prog-step.done{color:var(--text);border-color:rgba(62,207,116,.35);}
+.prog-step.done .box{background:var(--green);border-color:var(--green);color:#0d0f18;}
 
 /* ── LAYOUT ── */
 .wrap{max-width:1060px;margin:0 auto;padding:0 20px;}
@@ -167,16 +200,16 @@ footer a{color:var(--accent);text-decoration:none;}
 ══════════════════════════════════════ -->
 <div id="screen-entry" class="screen active">
   <div class="entry-wrap">
-    <div class="entry-badge">🧠 AI Zápisník — v4 · <span id="edate"></span></div>
+    <div class="entry-badge">🧠 AI Zápisník — v5 · <span id="edate"></span></div>
     <h1 class="entry-h1">Kdo jsi?</h1>
     <p class="entry-sub">Tenhle zápisník je pro dva lidi kteří procházejí AI revolucí spolu.<br>Každý vidí jiný pohled — ale oba vidí celé.</p>
     <div class="role-cards">
-      <div class="role-card martin" onclick="enter('martin')">
+      <div class="role-card martin" role="button" tabindex="0" onclick="enter('martin')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enter('martin');}">
         <div class="rc-icon">👨</div>
         <div class="rc-name">Jsem Martin</div>
         <div class="rc-desc">Plný portál. Meta analýza. Honzíkův progress. Moje tools a rozhodnutí.</div>
       </div>
-      <div class="role-card honzik" onclick="enter('honzik')">
+      <div class="role-card honzik" role="button" tabindex="0" onclick="enter('honzik')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enter('honzik');}">
         <div class="rc-icon">🧑</div>
         <div class="rc-name">Jsem Honzík</div>
         <div class="rc-desc">Krok 0: jeden experiment, 2 minuty. Pak se rozhodni jestli to má smysl.</div>
@@ -207,9 +240,26 @@ footer a{color:var(--accent);text-decoration:none;}
       <a class="ll" href="https://gemini.google.com" target="_blank" title="Gemini — Google"><span class="dot dge"></span>Gemini <span style="opacity:.5;font-size:10px;">Google</span></a>
       <a class="ll" href="https://grok.com" target="_blank" title="Grok — xAI (Elon Musk)"><span class="dot dgr"></span>Grok <span style="opacity:.5;font-size:10px;">xAI</span></a>
     </div>
+    <button class="t-toggle" type="button" onclick="toggleTheme()" title="Přepnout světlý / tmavý režim" aria-label="Přepnout světlý nebo tmavý režim">🌙</button>
   </div>
 
   <div class="wrap">
+
+    <!-- PROGRESS TRACKER -->
+    <div class="prog" style="margin-top:22px;">
+      <div class="prog-top">
+        <span class="prog-title">Tvůj postup</span>
+        <span class="prog-pct" id="progPct">0 %</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-steps" id="progSteps">
+        <button class="prog-step" type="button" data-step="wow"><span class="box"></span>Viděl jsem wow demo</button>
+        <button class="prog-step" type="button" data-step="try"><span class="box"></span>Zkusil jsem prompt sám</button>
+        <button class="prog-step" type="button" data-step="score"><span class="box"></span>Zapsal jsem výsledek</button>
+        <button class="prog-step" type="button" data-step="path"><span class="box"></span>Vybral jsem cestu</button>
+        <button class="prog-step" type="button" data-step="martin"><span class="box"></span>Poslal jsem Martinovi</button>
+      </div>
+    </div>
 
     <!-- KROK 0 -->
     <section>
@@ -459,10 +509,10 @@ footer a{color:var(--accent);text-decoration:none;}
 
   </div>
   <footer>
-    AI Zápisník — Martine & Honzík · v4 · <span id="hdate"></span><br>
+    AI Zápisník — Martine & Honzík · v5 · <span id="hdate"></span><br>
     <a href="https://gist.github.com" target="_blank">GitHub Gist</a> · self-verified: demo funguje · ceny neověřeny (mění se)
   </footer>
-  <a class="back-top" href="#" onclick="document.getElementById('screen-honzik').scrollTop=0;return false;">↑</a>
+  <a class="back-top" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="Zpět nahoru">↑</a>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -488,6 +538,7 @@ footer a{color:var(--accent);text-decoration:none;}
       <a class="ll" href="https://gemini.google.com" target="_blank" title="Gemini — Google"><span class="dot dge"></span>Gemini <span style="opacity:.5;font-size:10px;">Google</span></a>
       <a class="ll" href="https://grok.com" target="_blank" title="Grok — xAI (Elon Musk)"><span class="dot dgr"></span>Grok <span style="opacity:.5;font-size:10px;">xAI</span></a>
     </div>
+    <button class="t-toggle" type="button" onclick="toggleTheme()" title="Přepnout světlý / tmavý režim" aria-label="Přepnout světlý nebo tmavý režim">🌙</button>
   </div>
 
   <div class="wrap">
@@ -666,10 +717,10 @@ Be direct. Be harsh. Show me what I'm missing.
 
   </div>
   <footer>
-    AI Zápisník — Martine & Honzík · v4 · <span id="mdate"></span> ·
+    AI Zápisník — Martine & Honzík · v5 · <span id="mdate"></span> ·
     <a href="https://gist.github.com" target="_blank">GitHub Gist</a>
   </footer>
-  <a class="back-top" href="#" onclick="document.getElementById('screen-martin').scrollTop=0;return false;">↑</a>
+  <a class="back-top" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="Zpět nahoru">↑</a>
 </div>
 
 <script>
@@ -679,6 +730,47 @@ var d = new Date().toLocaleDateString('cs-CZ',{year:'numeric',month:'long',day:'
 
 // ── STATE ──
 var S = JSON.parse(localStorage.getItem('aiz4')||'{}');
+if(!S.steps) S.steps={};
+
+// ── THEME ──
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  var meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t==='light'?'#f5f7fc':'#0d0f18');
+  document.querySelectorAll('.t-toggle').forEach(b=>b.textContent = t==='light'?'☀️':'🌙');
+}
+function toggleTheme(){
+  S.theme = (S.theme==='light')?'dark':'light';
+  save(); applyTheme(S.theme);
+}
+applyTheme(S.theme || 'dark');
+
+// ── PROGRESS ──
+var STEP_COUNT = 5;
+function markStep(id){
+  if(S.steps[id]) return;
+  S.steps[id]=true; save(); renderProgress();
+}
+function renderProgress(){
+  var steps=document.querySelectorAll('#progSteps .prog-step');
+  if(!steps.length) return;
+  var done=0;
+  steps.forEach(el=>{
+    var on=!!S.steps[el.dataset.step];
+    el.classList.toggle('done', on);
+    el.querySelector('.box').textContent = on?'✓':'';
+    if(on) done++;
+  });
+  var pct=Math.round(done/STEP_COUNT*100);
+  document.getElementById('progPct').textContent = pct+' %';
+  document.getElementById('progFill').style.width = pct+'%';
+}
+document.querySelectorAll('#progSteps .prog-step').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    var k=el.dataset.step;
+    S.steps[k]=!S.steps[k]; save(); renderProgress();
+  });
+});
 
 // ── ENTRY ──
 function enter(role){
@@ -687,7 +779,7 @@ function enter(role){
   document.getElementById('screen-'+role).classList.add('active');
   history.pushState(null, '', window.location.pathname);
   window.scrollTo({top:0,behavior:'instant'});
-  if(role==='honzik') restoreHonzik();
+  if(role==='honzik'){ restoreHonzik(); renderProgress(); }
 }
 function backToEntry(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -705,6 +797,7 @@ function showWow(id, btn){
   document.querySelectorAll('.wow-panel').forEach(p=>p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('wow-'+id).classList.add('on');
+  markStep('wow');
 }
 
 // ── RESULT ──
@@ -712,7 +805,7 @@ function saveResult(){
   var a=parseInt(document.getElementById('numA').value);
   var b=parseInt(document.getElementById('numB').value);
   if(isNaN(a)||isNaN(b)||a<0||a>5||b<0||b>5){ alert('Zadej čísla 0–5'); return; }
-  S.scoreA=a; S.scoreB=b; save();
+  S.scoreA=a; S.scoreB=b; save(); markStep('score');
   var diff=b-a;
   var r=document.getElementById('nres');
   r.innerHTML='Uloženo. A: <strong>'+a+'/5</strong>, B: <strong>'+b+'/5</strong>. '
@@ -743,6 +836,7 @@ function showPath(id){
   d.innerHTML=pathContent[id];
   d.style.display='block';
   d.scrollIntoView({behavior:'smooth',block:'nearest'});
+  markStep('path');
 }
 
 // ── COPY ──
@@ -751,12 +845,34 @@ function cp(id,btn){
   var tmp=el.cloneNode(true);
   tmp.querySelectorAll('.cbtn,.big-copy').forEach(b=>b.remove());
   var text=(tmp.innerText||tmp.textContent).trim();
-  navigator.clipboard.writeText(text).then(()=>{
+  var done=()=>{
     var o=btn.textContent;
     btn.textContent=btn.classList.contains('big-copy')?'✓ Zkopírováno!':'✓ OK';
     btn.classList.add('ok');
     setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},2200);
-  }).catch(()=>{ alert('Kopírování selhalo — zkus Ctrl+A + Ctrl+C'); });
+    if(id==='pa'||id==='pb') markStep('try');
+    if(id==='resultMsg') markStep('martin');
+  };
+  // Fallback for non-secure contexts / older browsers
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>legacyCopy(text,done));
+  } else { legacyCopy(text,done); }
+}
+function legacyCopy(text,done){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    done();
+  }catch(e){ alert('Kopírování selhalo — zkus Ctrl+A + Ctrl+C'); }
+}
+
+// ── OFFLINE (PWA) ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
 }
 </script>
 </body>
