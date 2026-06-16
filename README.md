@@ -39,6 +39,17 @@ Otevři [live stránku](https://martinpaprcka77.github.io/LLMportal) a vyber rol
 
 ---
 
+## Novinky ve v5
+
+- **📊 Sledování postupu** — Honzík vidí progress bar (5 kroků), ukládá se lokálně
+- **🌙 Světlý / tmavý režim** — přepínač v liště, zapamatuje si volbu
+- **📲 Funguje offline (PWA)** — nainstalovatelná appka, service worker cachuje shell
+- **♿ Přístupnost** — klávesnicová obsluha rolí, focus styly, aria popisky
+- **🔗 SEO + sdílení** — meta description, Open Graph, favicon
+- **📋 Spolehlivé kopírování** — fallback pro starší prohlížeče a nezabezpečené kontexty
+
+---
+
 ## Modely (bez subscripce)
 
 | Model | Bez login | Free login | Link |
@@ -73,4 +84,4 @@ Podmínka přidání do portálu: **oba musíme říct "wow"** dřív než to zv
 
 ---
 
-*Verze: 4 · Autoři: Martine + Honzík + Claude · Poslední update: viz commits*
+*Verze: 5 · Autoři: Martine + Honzík + Claude · Poslední update: viz commits*
