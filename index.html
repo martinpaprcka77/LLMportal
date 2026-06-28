@@ -828,11 +828,9 @@ function saveResult(){
   document.getElementById('sendResult').style.display='block';
 }
 function sendToMartin() {
-  var txt = 'Martine, můj výsledek:
-A: '+(S.scoreA||'?')+'/5, B: '+(S.scoreB||'?')+'/5';
-  window.open('https://gist.github.com/new?description=LLMportal+výsledek&body='+encodeURIComponent(txt), '_blank');
+  var txt = 'Martine, můj výsledek:\nA: '+(S.scoreA||'?')+'/5, B: '+(S.scoreB||'?')+'/5';
+  window.open('https://gist.github.com/new?description=LLMportal+vysledek&body='+encodeURIComponent(txt), '_blank');
   markStep('martin');
-
 }
 function restoreHonzik(){
   if(S.scoreA!==undefined){
