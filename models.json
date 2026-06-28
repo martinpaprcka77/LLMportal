@@ -1,0 +1,5 @@
+{"version":2,"updated":"2026-06-28","models":[
+{"name":"DeepSeek","free":true,"noLogin":true,"url":"https://chat.deepseek.com"},
+{"name":"Gemini","free":true,"noLogin":false,"url":"https://gemini.google.com"},
+{"name":"Claude","free":true,"noLogin":false,"url":"https://claude.ai"},
+{"name":"ChatGPT","free":true,"noLogin":false,"url":"https://chat.openai.com"}]}
